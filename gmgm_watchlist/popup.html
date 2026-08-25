@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>GMGN Watchlist (test)</title>
+<style>
+  body { font-family: system-ui, sans-serif; width: 320px; padding: 12px; font-size: 13px; }
+  h1 { font-size: 14px; margin: 0 0 8px; }
+  .status { margin-bottom: 8px; padding: 6px 8px; border-radius: 6px; background: #f2f2f2; }
+  .ok { background: #e3f6e5; color: #1a7431; }
+  .warn { background: #fff4e0; color: #8a5b00; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  td, th { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eee; }
+  button { width: 100%; padding: 6px; margin-top: 4px; cursor: pointer; }
+  input { width: 100%; padding: 5px; margin-top: 6px; box-sizing: border-box; }
+  .muted { color: #888; font-size: 11px; }
+</style>
+</head>
+<body>
+  <h1>GMGN Watchlist — тест</h1>
+  <div id="status" class="status">Загрузка...</div>
+  <table id="groupsTable"><tbody></tbody></table>
+  <div class="muted" id="updated"></div>
+
+  <button id="refreshBtn">Обновить группы (refreshGroups)</button>
+
+  <input id="walletInput" placeholder="0x... адрес кошелька" />
+  <button id="followBtn">Test GMGN.follow(wallet)</button>
+  <div class="muted" id="followResult"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>GMGN Watchlist</title>
+<!-- Geist — реальный шрифт GMGN (font-family: Geist, sans-serif, "Microsoft YaHei"),
+     подтверждено замером computed style на живой странице. Раздаётся через
+     Fontsource/jsDelivr (self-host npm-пакета geist), не Google Fonts —
+     в самом Google Fonts Geist не публикуется (это шрифт Vercel). -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist/wght.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist-mono/wght.css">
+<link rel="stylesheet" href="sidebar.css" />
+</head>
+<body>
+
+  <div class="gw-header">
+    <img src="icons/icon32.png" alt="" class="gw-logo" />
+    <div class="gw-header-text">
+      <span class="gw-title">GMGN Watchlist</span>
+      <button id="hotkeyHint" class="gw-hint gw-hint-link" type="button" title="Открыть настройку горячих клавиш Chrome">Ctrl+Shift+G · изменить</button>
+    </div>
+  </div>
+
+  <div id="tokenSection" class="gw-section" style="display:none">
+    <div class="gw-token-row">
+      <span id="tokenTicker" class="gw-token-ticker">—</span>
+      <span id="tokenName" class="gw-token-name"></span>
+    </div>
+    <div class="gw-muted gw-mono" id="tokenAddress"></div>
+  </div>
+
+  <div id="selectedSection" class="gw-section">
+    <div class="gw-section-label">Выбранные кошельки со страницы токена</div>
+    <div class="gw-prefix-row">
+      <input id="prefixInput" class="gw-input" placeholder="ПРЕФИКС_" />
+      <label class="gw-checkbox-label" title="Нумеровать кошельки при добавлении: ИМЯ_1, ИМЯ_2, ... Выключено — у всех одно и то же имя.">
+        <input type="checkbox" id="numberingEnabled" />
+        Нумеровать
+      </label>
+    </div>
+    <div class="gw-prefix-row">
+      <input id="groupInput" class="gw-input" list="groupList"
+             placeholder="Группа (пусто — по умолчанию)"
+             title="Имя существующей группы GMGN. Пусто — кошельки уйдут в группу по умолчанию." />
+      <datalist id="groupList"></datalist>
+    </div>
+    <div class="gw-color-row">
+      <label for="remarkColorInput" class="gw-muted">Цвет метки в GMGN:</label>
+      <input type="color" id="remarkColorInput" class="gw-color-input" value="#E9AE4D" />
+      <span id="remarkColorHex" class="gw-mono">#E9AE4D</span>
+    </div>
+    <table class="gw-table gw-table--selected">
+      <thead><tr><th>#</th><th>Адрес</th><th>Имя</th><th>✓</th><th></th></tr></thead>
+      <tbody id="selectedTable"></tbody>
+    </table>
+    <div class="gw-muted" id="selectedEmpty">Отметьте чекбоксом кошелёк в таблице на странице токена (Holders/Traders/Activity) или выделите несколько строк мышью.</div>
+    <button id="addToWatchlistBtn" class="gw-btn gw-btn--accent" disabled>Добавить адреса в вачлист</button>
+    <div class="gw-muted" id="addResult"></div>
+    <button id="clearSelectedBtn" class="gw-btn">Очистить</button>
+  </div>
+
+  <div id="exportSection" class="gw-section">
+    <details id="exportDetails" class="gw-details">
+      <summary class="gw-summary">Экспорт в трекинг-бота <span id="exportCount" class="gw-badge">0</span></summary>
+
+      <div class="gw-field-label">Формат</div>
+      <div class="gw-seg" id="fmtSeg">
+        <button type="button" class="gw-seg-btn" data-val="json" title="JSON для трекинг-бота (DRBT и совместимые)">JSON<small>трекинг-бот</small></button>
+        <button type="button" class="gw-seg-btn" data-val="csv" title="CSV для таблиц">CSV<small>таблицы</small></button>
+        <button type="button" class="gw-seg-btn" data-val="addr" title="Только адреса, по одному в строке">Адреса<small>по одному</small></button>
+      </div>
+
+      <div class="gw-field-label">Имя кошелька</div>
+      <div class="gw-seg" id="nameSeg">
+        <button type="button" class="gw-seg-btn" data-val="prefix" title="Префикс из поля выше (+ номер, если включена нумерация)">Префикс<small id="egPrefix">WALLET_1</small></button>
+        <button type="button" class="gw-seg-btn" data-val="rank" title="Позиция в списке + тикер токена">Ранг<small id="egRank">#1 - TICKER</small></button>
+        <button type="button" class="gw-seg-btn" data-val="addr" title="Сокращённый адрес">Адрес<small id="egAddr">0xc399...ec81</small></button>
+      </div>
+      <div class="gw-muted">Префикс, нумерация и группа берутся из полей выше — отдельно вводить не нужно.</div>
+
+      <div class="gw-field-label">Эмодзи</div>
+      <div class="gw-emoji-grid" id="emojiGrid"></div>
+
+      <div class="gw-field-label">Оповещения</div>
+      <div class="gw-toggle-row">
+        <span>Toast</span>
+        <label class="gw-switch"><input type="checkbox" id="alertToast"><span class="gw-slider"></span></label>
+      </div>
+      <div class="gw-toggle-row">
+        <span>Bubble</span>
+        <label class="gw-switch"><input type="checkbox" id="alertBubble" checked><span class="gw-slider"></span></label>
+      </div>
+      <div class="gw-toggle-row">
+        <span>Feed</span>
+        <label class="gw-switch"><input type="checkbox" id="alertFeed" checked><span class="gw-slider"></span></label>
+      </div>
+
+      <div class="gw-prefix-row">
+        <input id="soundInput" class="gw-input" placeholder="Звук" value="default" title="Значение поля sound в JSON трекинг-бота" />
+        <input id="filenameInput" class="gw-input" placeholder="Имя файла" title="Без расширения — оно подставится по формату" />
+      </div>
+
+      <label class="gw-checkbox-label" style="margin:10px 0 2px" title="Эмодзи и тумблеры выше применятся не только к файлу, но и к самому GMGN при нажатии «Добавить адреса в вачлист»">
+        <input type="checkbox" id="applyToGmgn" />
+        Применять эмодзи и оповещения в GMGN при добавлении
+      </label>
+
+      <div class="gw-field-label">Предпросмотр</div>
+      <pre class="gw-preview" id="exportPreview">—</pre>
+
+      <div class="gw-prefix-row">
+        <button id="copyExportBtn" class="gw-btn" style="flex:1">Копировать</button>
+        <button id="downloadExportBtn" class="gw-btn gw-btn--accent" style="flex:1">Скачать</button>
+      </div>
+      <div class="gw-muted" id="exportResult"></div>
+    </details>
+  </div>
+
+  <div id="trackedSection" class="gw-section">
+    <div class="gw-section-label">Отслеживаемые кошельки (страница /follow)</div>
+    <table class="gw-table">
+      <thead><tr><th>#</th><th>Адрес</th><th>✓</th><th></th></tr></thead>
+      <tbody id="trackedTable"></tbody>
+    </table>
+    <div class="gw-muted" id="trackedEmpty">Отметьте чекбоксом кошелёк в списке на странице /follow (или выделите несколько строк мышью), чтобы отписаться пачкой.</div>
+    <button id="unfollowSelectedBtn" class="gw-btn gw-btn--danger" disabled>Отписать выбранные</button>
+    <div class="gw-muted" id="unfollowSelectedResult"></div>
+    <button id="clearTrackedBtn" class="gw-btn">Очистить</button>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script src="export.js"></script>
+</body>
+</html>

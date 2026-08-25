@@ -1,0 +1,98 @@
+{
+  "manifest_version": 3,
+  "name": "GMGN Watchlist",
+  "version": "1.19.0",
+  "description": "GMGN Watchlist",
+  "permissions": [
+    "storage",
+    "scripting",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://gmgn.ai/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "GMGN Watchlist (test) — клик или Ctrl+Shift+G",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gmgn.ai/*"
+      ],
+      "js": [
+        "gmgn/inject.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://gmgn.ai/*"
+      ],
+      "js": [
+        "gmgn/storage.js",
+        "gmgn/api.js",
+        "gmgn/groups.js",
+        "gmgn/follow.js",
+        "content.js",
+        "gmgn/index.js",
+        "panel.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://gmgn.ai/*"
+      ],
+      "js": [
+        "gmgn/wallet_scanner.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://gmgn.ai/*"
+      ],
+      "js": [
+        "gmgn/tracked_wallet_scanner.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidebar.html",
+        "sidebar.css",
+        "sidebar.js",
+        "export.js"
+      ],
+      "matches": [
+        "https://gmgn.ai/*"
+      ]
+    }
+  ],
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G"
+      },
+      "description": "Открыть/закрыть сайдбар GMGN Watchlist"
+    }
+  }
+}

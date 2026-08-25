@@ -1,0 +1,295 @@
+/* Палитра/шрифты — реальные CSS custom properties GMGN (gmgn.ai), сняты
+   через getComputedStyle/:root на живой странице пользователем 24.07.2026:
+     --bg-color: #0d0d0f          body background (computed): rgb(18,18,18)
+     --border-color: #1f2024      --accent-color: #f0f5f5 (основной текст)
+     --auxiliary-color: #676e70   (приглушённый текст)
+     --color-primary: rgb(255 79 41) = #FF4F29  (их фирменный акцент — оранжевый, НЕ зелёный)
+     --pi-success-color: #52c41a  --pi-error-color: #ff4d4f  --pi-warning-color: #faad14
+     font: Geist, sans-serif, "Microsoft YaHei"; base 14px, вес 400
+   --color-card (surface/панели) не попал в замер — Chakra UI скоупит его под
+   классом .chakra-ui-dark, а не :root/html, наш скрипт туда не заглядывал.
+   Оценка ниже (--surface) взята между --bg-color и --border-color. */
+:root {
+  --bg-page:       #0d0d0f;
+  --bg-body:       #121212;
+  --surface:       #17181b;
+  --surface-muted: #1c1d21;
+  --border:        #1f2024;
+  --accent:        #ff4f29;
+  --accent-soft:   rgba(255, 79, 41, 0.16);
+  --accent-dim:    rgba(255, 79, 41, 0.10);
+  --text-main:     #f0f5f5;
+  --text-muted:    #676e70;
+  --text-dim:      rgba(103, 110, 112, 0.7);
+  --warn:          #faad14;
+  --danger:        #ff4d4f;
+  --success:       #52c41a;
+  --shadow:        0 18px 45px rgba(0, 0, 0, 0.65);
+  --radius:        8px;
+  --font:          'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:     'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-main);
+  background: var(--bg-body); /* у GMGN фон плоский, без градиента — раньше был наш собственный radial-gradient */
+  width: 100%;
+  height: 100vh;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar             { width: 5px; }
+::-webkit-scrollbar-track       { background: transparent; }
+::-webkit-scrollbar-thumb       { background: rgba(255, 79, 41, 0.3); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 79, 41, 0.55); }
+
+.gw-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 2px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.gw-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+.gw-header-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gw-title { font-size: 16px; font-weight: 600; }
+.gw-hint  { font-size: 10px; color: var(--text-muted); }
+.gw-hint-link {
+  background: none; border: none; padding: 0; text-align: left;
+  cursor: pointer; text-decoration: underline; text-decoration-style: dotted;
+}
+.gw-hint-link:hover { color: var(--text-main); }
+
+.gw-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.gw-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.gw-table {
+  align-self: flex-start; /* .gw-section — flex column, без этого таблица растягивалась
+                              на всю ширину контейнера (align-items:stretch по умолчанию)
+                              ВНЕ ЗАВИСИМОСТИ от width на самой таблице — вот откуда была
+                              дыра между колонками все три предыдущих попытки подряд */
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.gw-table th,
+.gw-table td {
+  white-space: nowrap;
+}
+.gw-table th {
+  text-align: left;
+  padding: 4px 14px 4px 6px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.gw-table td {
+  padding: 5px 14px 5px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.gw-table th:last-child,
+.gw-table td:last-child {
+  padding-right: 6px; /* последняя колонка (крестик) — без лишнего отступа справа */
+}
+
+/* Колонка "Имя" есть только у таблицы "Выбранные кошельки". Ограничение
+   ширины — на ВНУТРЕННЕМ span (.gw-name-cell), не на самой ячейке: в
+   table-layout:auto браузеры фактически игнорируют max-width на td/th
+   при расчёте ширины колонки (проверено на практике — не обрезало),
+   а на обычном inline-block элементе внутри ячейки max-width+ellipsis
+   работают надёжно, и td сама сжимается под этот внутренний блок. */
+.gw-name-cell {
+  display: inline-block;
+  min-width: 70px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.gw-muted { font-size: 11px; color: var(--text-dim); word-break: break-all; }
+.gw-mono { font-family: var(--font-mono); font-size: 11px; color: var(--text-main); cursor: help; }
+
+.gw-btn {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-main);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.gw-btn:hover { background: var(--accent-dim); border-color: rgba(255, 79, 41, 0.5); }
+.gw-btn:disabled { opacity: 0.5; cursor: wait; }
+
+.gw-status-ok { color: var(--success); font-weight: 600; }
+.gw-status-pending { color: var(--text-dim); }
+.gw-status-bot { color: var(--danger); font-weight: 600; cursor: help; }
+.gw-status-bot svg { display: block; vertical-align: middle; }
+.gw-status-error { color: var(--warn); font-weight: 600; cursor: help; }
+.gw-btn--accent {
+  background: rgba(82, 196, 26, 0.16);
+  color: var(--success);
+  border-color: rgba(82, 196, 26, 0.5);
+}
+.gw-btn--accent:hover { background: rgba(82, 196, 26, 0.28); }
+
+.gw-btn--danger {
+  background: rgba(255, 77, 79, 0.16);
+  color: var(--danger);
+  border-color: rgba(255, 77, 79, 0.5);
+}
+.gw-btn--danger:hover { background: rgba(255, 77, 79, 0.28); }
+
+.gw-input {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: 100%;
+}
+.gw-input::placeholder { color: var(--text-dim); }
+.gw-input:focus { outline: none; border-color: var(--accent); }
+
+.gw-token-row { display: flex; align-items: baseline; gap: 8px; }
+.gw-token-ticker { font-size: 15px; font-weight: 600; color: var(--text-main); }
+.gw-token-name { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.gw-color-row { display: flex; align-items: center; gap: 8px; }
+.gw-color-input {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+.gw-color-input::-webkit-color-swatch-wrapper { padding: 2px; }
+.gw-color-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+.gw-prefix-row { display: flex; align-items: center; gap: 8px; }
+.gw-prefix-row .gw-input { flex: 1; }
+.gw-checkbox-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted); white-space: nowrap;
+  cursor: pointer; user-select: none;
+}
+.gw-checkbox-label input[type="checkbox"] {
+  width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экспорт выбранных кошельков в трекинг-бота (v1.19.0).
+   Свёрнут в <details>: панель узкая, а полей много — развёрнутыми они
+   вытесняли бы таблицу кошельков за пределы экрана.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.gw-details { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; }
+.gw-details[open] { padding-bottom: 10px; }
+.gw-summary {
+  cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-muted); list-style: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.gw-summary::-webkit-details-marker { display: none; }
+.gw-summary::before { content: '▸'; font-size: 10px; }
+.gw-details[open] .gw-summary::before { content: '▾'; }
+.gw-summary:hover { color: var(--text-main); }
+.gw-badge {
+  background: var(--accent-soft); color: var(--accent); border-radius: 10px;
+  padding: 0 6px; font-size: 10px; font-weight: 600; letter-spacing: 0;
+}
+
+.gw-field-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin: 10px 0 4px;
+}
+
+/* Сегментированный переключатель — визуально как FORMAT/WALLET NAME в
+   диалоге экспорта трекинг-бота: кнопки в ряд, активная подсвечена. */
+.gw-seg { display: flex; gap: 4px; }
+.gw-seg-btn {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;
+  padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface-muted); color: var(--text-main);
+  font-family: var(--font); font-size: 11px; font-weight: 500;
+  cursor: pointer; text-align: left;
+}
+.gw-seg-btn small {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gw-seg-btn:hover { border-color: rgba(255, 79, 41, 0.5); }
+.gw-seg-btn.is-active { background: var(--accent-dim); border-color: var(--accent); }
+.gw-seg-btn.is-active small { color: var(--accent); }
+
+.gw-emoji-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.gw-emoji-btn {
+  width: 30px; height: 30px; padding: 0; font-size: 15px; line-height: 1;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface-muted); cursor: pointer; color: var(--text-main);
+}
+.gw-emoji-btn[data-val="auto"] { width: auto; padding: 0 8px; font-size: 10px; font-family: var(--font); }
+.gw-emoji-btn:hover { border-color: rgba(255, 79, 41, 0.5); }
+.gw-emoji-btn.is-active { background: var(--accent-dim); border-color: var(--accent); }
+
+.gw-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; margin-bottom: 4px; font-size: 12px;
+  background: var(--surface-muted); border: 1px solid var(--border); border-radius: 6px;
+}
+.gw-switch { position: relative; width: 32px; height: 18px; flex: none; }
+.gw-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.gw-slider {
+  position: absolute; inset: 0; cursor: pointer; border-radius: 18px;
+  background: #3a3b40; transition: background 0.15s;
+}
+.gw-slider::before {
+  content: ''; position: absolute; width: 14px; height: 14px; left: 2px; top: 2px;
+  background: #fff; border-radius: 50%; transition: transform 0.15s;
+}
+.gw-switch input:checked + .gw-slider { background: var(--accent); }
+.gw-switch input:checked + .gw-slider::before { transform: translateX(14px); }
+
+.gw-preview {
+  margin: 0; max-height: 150px; overflow: auto;
+  background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px; font-family: var(--font-mono); font-size: 10px; line-height: 1.45;
+  color: var(--text-main); white-space: pre; tab-size: 2;
+}

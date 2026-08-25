@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Angry Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+
+<div class="tabbar">
+    <button class="tab-btn active" id="btn-tab-tracker">Tracker</button>
+    <button class="tab-btn" id="btn-tab-groups">Groups</button>
+</div>
+
+<!-- Tracker -->
+<div id="panel-tracker" class="panel active" style="padding:0;">
+
+    <div id="tracker-sub-signal" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; padding:8px 0 0;">
+        <!-- Toolbar: filter -->
+        <div class="panel-toolbar panel-toolbar-top">
+            <div class="toolbar-filter-wrap">
+                <input id="filter-input" class="toolbar-search" type="text" placeholder="Filter by ticker or name…" autocomplete="off" spellcheck="false">
+                <button id="filter-clear" class="filter-clear-btn" title="Clear filter">✕</button>
+            </div>
+        </div>
+        <!-- Two-column layout: 5+400+5+400+5 -->
+        <div class="signal-columns">
+            <!-- Left: Fresh Feed -->
+            <div class="feed-col">
+                <div class="feed-col-header">Fresh Feed</div>
+                <div class="feed-list" id="sig-feed-fresh">
+                    <div id="sig-list-fresh"></div>
+                    <div id="af-sig-empty" class="panel-empty" style="display:none;">No fresh signals…</div>
+                </div>
+            </div>
+            <!-- Right: Tracker Feed (current) -->
+            <div class="feed-col">
+                <div class="feed-col-header">Tracker Feed</div>
+                <div class="feed-list" id="sig-feed">
+                    <div id="sig-list"></div>
+                    <div id="at-signal-empty" class="panel-empty" style="display:none;">No signals yet…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Groups -->
+<div id="panel-groups" class="panel" style="padding:0;">
+
+    <div class="wg-tabbar" id="groups-tabbar">
+        <button class="wg-tab active" data-groups-tab="slots">Slots</button>
+        <button class="wg-tab" data-groups-tab="list">Whitelist</button>
+        <button class="wg-tab" data-groups-tab="blacklist">Blacklist</button>
+    </div>
+
+    <!-- Groups: Slots (ui_section=1) -->
+    <div class="wg-subpanel active" id="groups-sub-slots" style="flex:1; min-height:0; overflow-y:auto; padding:8px;">
+        <button class="ds-btn btn-good" id="at-btn-new-slot" style="width:100%; margin-bottom:10px; flex-shrink:0;">+ New Slot</button>
+        <div id="at-slots-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="at-slots-empty" class="panel-empty" style="display:none;">No slots yet…</div>
+    </div>
+
+    <!-- Groups: Whitelist (ui_section=0) -->
+    <div class="wg-subpanel" id="groups-sub-list" style="flex:1; min-height:0; overflow-y:auto; padding:8px;">
+        <button class="ds-btn btn-good" id="at-btn-new-group-list" style="width:100%; margin-bottom:10px; flex-shrink:0;">+ New Group</button>
+        <div id="at-groups-list-container" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="at-groups-list-empty" class="panel-empty" style="display:none;">No groups yet…</div>
+    </div>
+
+    <!-- Groups: Blacklist (ui_section=99) -->
+    <div class="wg-subpanel" id="groups-sub-blacklist" style="flex:1; min-height:0; overflow-y:auto; padding:8px;">
+        <button class="ds-btn btn-bad" id="at-btn-new-group-bl" style="width:100%; margin-bottom:10px; flex-shrink:0;">+ New Blacklist Group</button>
+        <div id="at-groups-bl-container" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="at-groups-bl-empty" class="panel-empty" style="display:none;">No blacklist groups yet…</div>
+    </div>
+
+</div>
+
+<!-- Group Move Modal -->
+<div id="wg-move-modal" class="wg-modal-backdrop" style="display:none;">
+    <div class="wg-modal">
+        <div class="wg-modal-header">
+            <span class="wg-modal-title">Move to Group</span>
+            <button class="wg-modal-close" id="wg-move-modal-close">✕</button>
+        </div>
+        <div class="wg-modal-body" id="wg-move-modal-body" style="padding:8px 0; max-height:320px; overflow-y:auto;">
+        </div>
+    </div>
+</div>
+
+<!-- Delete Wallet Modal -->
+<div id="dw-modal" class="wg-modal-backdrop" style="display:none;">
+    <div class="wg-modal" style="min-width:340px;max-width:420px;">
+        <div class="wg-modal-header">
+            <span class="wg-modal-title">DELETE WALLET</span>
+            <button class="wg-modal-close" id="dw-modal-close">✕</button>
+        </div>
+        <div class="wg-modal-body" style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;">
+            <div id="dw-addr-row" style="display:flex;align-items:center;gap:6px;min-width:0;">
+                <span id="dw-copy-placeholder"></span>
+                <a id="dw-solscan-btn" class="dw-addr-btn" href="#" target="_blank" title="Open in Solscan">↗</a>
+                <span id="dw-addr-text" style="font-family:ui-monospace,monospace;font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;"></span>
+            </div>
+            <div id="dw-group-row"></div>
+            <div style="display:flex;flex-direction:column;gap:6px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.07);">
+                <button class="dw-action-btn" id="dw-btn-del">Удалить из БД</button>
+                <button class="dw-action-btn" id="dw-btn-lock">Поместить в НЕПРИКАСАЕМЫЕ</button>
+                <button class="dw-action-btn" id="dw-btn-farmer">Перенести в фармеры</button>
+                <button class="dw-action-btn" id="dw-btn-move">Переместить в группу…</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Group Picker Modal -->
+<div id="gp-modal" class="wg-modal-backdrop" style="display:none;">
+    <div class="wg-modal" style="min-width:340px;max-width:420px;display:flex;flex-direction:column;max-height:560px;">
+        <div class="wg-modal-header">
+            <span class="wg-modal-title">Переместить в группу</span>
+            <button class="wg-modal-close" id="gp-modal-close">✕</button>
+        </div>
+        <div id="gp-modal-list" style="flex:1;overflow-y:auto;padding:4px 0;"></div>
+        <div class="wg-modal-footer">
+            <button id="gp-modal-ok" class="dw-action-btn" style="width:auto;padding:6px 24px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Global Footer -->
+<div id="global-footer">
+    <div id="gf-sound" title="Alarm sound">
+        <span id="gf-bell-icon"></span>
+        <label class="at-toggle gf-sound-toggle"><input type="checkbox" id="cb-sound-swap" checked><span class="at-toggle-slider"></span></label>
+    </div>
+    <span id="gf-context"></span>
+    <div id="gf-leds">
+        <span class="gf-led-wrap"><span id="led-api" class="gf-led gf-led-dim"></span><span class="gf-led-label">API</span></span>
+        <span class="gf-led-wrap"><span id="led-sse" class="gf-led gf-led-dim"></span><span class="gf-led-label">SSE</span></span>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="icons.js"></script>
+<script src="botapi.js"></script>
+<script src="Sortable.min.js"></script>
+<script src="shared/footer.js"></script>
+<script src="sidebar.js"></script>
+</body>
+</html>
